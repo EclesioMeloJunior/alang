@@ -14,6 +14,9 @@ const (
 	SLASH     = "/"
 	ASTHERISC = "*"
 
+	EQ     = "=="
+	NOT_EQ = "!="
+
 	LT = "<"
 	GT = ">"
 
