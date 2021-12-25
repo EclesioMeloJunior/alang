@@ -8,7 +8,7 @@ import (
 )
 
 func Test_BasicTokens_NextToken(t *testing.T) {
-	input := "=+(){},;"
+	input := "=+(){},;!-/*5<>"
 
 	tests := []struct {
 		exepextedType   token.TokenType
@@ -22,6 +22,13 @@ func Test_BasicTokens_NextToken(t *testing.T) {
 		{token.RBRACE, "}"},
 		{token.COMMA, ","},
 		{token.SEMICOLON, ";"},
+		{token.BANG, "!"},
+		{token.MINUS, "-"},
+		{token.SLASH, "/"},
+		{token.ASTHERISC, "*"},
+		{token.INT, "5"},
+		{token.LT, "<"},
+		{token.GT, ">"},
 	}
 
 	l := lexer.New(input)
@@ -50,6 +57,12 @@ let add = fn(x, y) {
 }
 
 let return = add(five, ten);
+
+if (5 < 10) {
+	return true;
+} else {
+	return false;
+}
 `
 	tests := []struct {
 		expectedType    token.TokenType
@@ -81,7 +94,7 @@ let return = add(five, ten);
 		{token.SEMICOLON, ";"},
 		{token.RBRACE, "}"},
 		{token.LET, "let"},
-		{token.IDENT, "return"},
+		{token.RETURN, "return"},
 		{token.ASSIGN, "="},
 		{token.IDENT, "add"},
 		{token.LPAREN, "("},
@@ -90,6 +103,23 @@ let return = add(five, ten);
 		{token.IDENT, "ten"},
 		{token.RPAREN, ")"},
 		{token.SEMICOLON, ";"},
+		{token.IF, "if"},
+		{token.LPAREN, "("},
+		{token.INT, "5"},
+		{token.LT, "<"},
+		{token.INT, "10"},
+		{token.RPAREN, ")"},
+		{token.LBRACE, "{"},
+		{token.RETURN, "return"},
+		{token.TRUE, "true"},
+		{token.SEMICOLON, ";"},
+		{token.RBRACE, "}"},
+		{token.ELSE, "else"},
+		{token.LBRACE, "{"},
+		{token.RETURN, "return"},
+		{token.FALSE, "false"},
+		{token.SEMICOLON, ";"},
+		{token.RBRACE, "}"},
 		{token.EOF, ""},
 	}
 

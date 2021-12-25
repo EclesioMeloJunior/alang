@@ -48,6 +48,18 @@ func (l *Lexer) NextToken() token.Token {
 		tok = newToken(token.RBRACE, l.char)
 	case '+':
 		tok = newToken(token.PLUS, l.char)
+	case '-':
+		tok = newToken(token.MINUS, l.char)
+	case '!':
+		tok = newToken(token.BANG, l.char)
+	case '*':
+		tok = newToken(token.ASTHERISC, l.char)
+	case '/':
+		tok = newToken(token.SLASH, l.char)
+	case '<':
+		tok = newToken(token.LT, l.char)
+	case '>':
+		tok = newToken(token.GT, l.char)
 	case 0:
 		tok.Literal = ""
 		tok.Type = token.EOF
