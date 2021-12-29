@@ -1,6 +1,8 @@
 package parser
 
 import (
+	"fmt"
+
 	"github.com/EclesioMeloJunior/monkey-lang/ast"
 	"github.com/EclesioMeloJunior/monkey-lang/lexer"
 	"github.com/EclesioMeloJunior/monkey-lang/token"
@@ -11,6 +13,8 @@ type Parser struct {
 
 	curToken  token.Token
 	peekToken token.Token
+
+	errors []error
 }
 
 func New(l *lexer.Lexer) *Parser {
@@ -87,6 +91,7 @@ func (p *Parser) expectPeek(t token.TokenType) bool {
 		return true
 	}
 
+	p.unexpectedTypeErr(t, p.peekToken.Type)
 	return false
 }
 
@@ -96,4 +101,14 @@ func (p *Parser) peekTokenIs(t token.TokenType) bool {
 
 func (p *Parser) curTokenIs(t token.TokenType) bool {
 	return p.curToken.Type == t
+}
+
+func (p *Parser) unexpectedTypeErr(expected, got token.TokenType) {
+	err := fmt.Errorf("expected next token type be %s. got type %s", expected, got)
+	p.errors = append(p.errors, err)
+}
+
+// Errors return all errors faced by the parser
+func (p *Parser) Errors() []error {
+	return p.errors
 }

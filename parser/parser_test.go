@@ -20,6 +20,7 @@ let foobar = 8989;
 	p := parser.New(l)
 
 	program := p.ParseProgram()
+	checkParserErrors(t, p)
 
 	if program == nil {
 		t.Fatalf("parser.ParseProgram return nil, expected not nil")
@@ -75,4 +76,28 @@ func testLetStatement(t *testing.T, stmt ast.Statement, expectedIdentifier strin
 	}
 
 	return true
+}
+
+func checkParserErrors(t *testing.T, p *parser.Parser) {
+	t.Helper()
+
+	parserErrs := p.Errors()
+
+	const colorReset = "\033[0m"
+
+	if len(parserErrs) > 0 {
+		const colorRed = "\033[31m"
+		t.Logf("%s Parser Errors: %d %s\n", colorRed, len(parserErrs), colorReset)
+	} else {
+		const colorGreen = "\033[32m"
+		t.Logf("%s Parser Errors: %d %s\n", colorGreen, len(parserErrs), colorReset)
+	}
+
+	for _, err := range parserErrs {
+		t.Errorf("parser error: %q", err)
+	}
+
+	if len(parserErrs) > 0 {
+		t.FailNow()
+	}
 }
