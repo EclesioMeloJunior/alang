@@ -126,8 +126,14 @@ return 1010101;`
 			continue
 		}
 
-		if returnStmt.TokenLiteral() != token.RETURN {
-			t.Errorf("returnStmt.TokenLiteral not 'return'. got=%q",
+		if returnStmt.Token.Type != token.RETURN {
+			t.Errorf("returnStmt.TokenLiteral not return. got=%q",
+				returnStmt.TokenLiteral())
+		}
+
+		const returnLiteral = "return"
+		if returnStmt.TokenLiteral() != returnLiteral {
+			t.Errorf("returnStmt.TokenLiteral not return. got=%q",
 				returnStmt.TokenLiteral())
 		}
 	}
