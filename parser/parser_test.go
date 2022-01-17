@@ -137,5 +137,38 @@ return 1010101;`
 				returnStmt.TokenLiteral())
 		}
 	}
+}
 
+func TestIdentifierExpression(t *testing.T) {
+	input := "foobar;"
+
+	l := lexer.New(input)
+	p := parser.New(l)
+
+	prog := p.ParseProgram()
+
+	if len(prog.Statements) != 1 {
+		t.Fatalf("program has not enough statements. got=%d", len(prog.Statements))
+	}
+
+	stmt := prog.Statements[0]
+
+	identifierStmt, ok := stmt.(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] should be *ast.ExpressionStatement. got=%T", stmt)
+	}
+
+	identifierExpression, ok := identifierStmt.Expression.(*ast.Identifier)
+	if !ok {
+		t.Fatalf("expression should be an *ast.Identifier. got=%T", identifierExpression)
+	}
+
+	const declaredVariableName = "foobar"
+	if identifierExpression.Value != declaredVariableName {
+		t.Fatalf("expected token value=%q. got=%q", declaredVariableName, identifierExpression.Value)
+	}
+
+	if identifierExpression.TokenLiteral() != declaredVariableName {
+		t.Fatalf("expected token literal=%q. got=%q", declaredVariableName, identifierExpression.Value)
+	}
 }

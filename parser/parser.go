@@ -8,6 +8,13 @@ import (
 	"github.com/EclesioMeloJunior/monkey-lang/token"
 )
 
+type (
+	prefixParserFn func() ast.Expression
+
+	// the argument represents the left part of the infix expression that's being parsed
+	infixParserFn func(ast.Expression) ast.Expression
+)
+
 type Parser struct {
 	l *lexer.Lexer
 
@@ -15,6 +22,9 @@ type Parser struct {
 	peekToken token.Token
 
 	errors []error
+
+	prefixParsers map[token.TokenType]prefixParserFn
+	infixParsers  map[token.TokenType]infixParserFn
 }
 
 func New(l *lexer.Lexer) *Parser {
@@ -23,12 +33,10 @@ func New(l *lexer.Lexer) *Parser {
 	p.nextToken()
 	p.nextToken()
 
-	return p
-}
+	p.prefixParsers = make(map[token.TokenType]prefixParserFn)
+	p.addPrefixParserFn(token.IDENT, p.parseIdentifier)
 
-func (p *Parser) nextToken() {
-	p.curToken = p.peekToken
-	p.peekToken = p.l.NextToken()
+	return p
 }
 
 func (p *Parser) ParseProgram() *ast.Program {
@@ -38,15 +46,16 @@ func (p *Parser) ParseProgram() *ast.Program {
 
 	for p.curToken.Type != token.EOF {
 		stmt := p.parseStatement()
-
-		if stmt != nil {
-			program.Statements = append(program.Statements, stmt)
-		}
-
+		program.Statements = append(program.Statements, stmt)
 		p.nextToken()
 	}
 
 	return program
+}
+
+func (p *Parser) nextToken() {
+	p.curToken = p.peekToken
+	p.peekToken = p.l.NextToken()
 }
 
 func (p *Parser) parseStatement() ast.Statement {
@@ -56,54 +65,13 @@ func (p *Parser) parseStatement() ast.Statement {
 	case token.RETURN:
 		return p.parseReturnStatement()
 	default:
-		return nil
+		return p.parseExpressionStatement()
 	}
-}
-
-func (p *Parser) parseLetStatement() *ast.LetStatement {
-	stmt := &ast.LetStatement{Token: p.curToken}
-
-	// in the let statment, after the keyword `let`
-	// the next token must be and IDENT
-	if !p.expectPeek(token.IDENT) {
-		return nil
-	}
-
-	stmt.Name = &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
-
-	// in the let statement, after the identifier
-	// the next token must be the `=`
-	if !p.expectPeek(token.ASSIGN) {
-		return nil
-	}
-
-	// TODO: ignoring what comes after `=` for now.
-	for !p.curTokenIs(token.SEMICOLON) {
-		p.nextToken()
-	}
-
-	return stmt
-}
-
-func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
-	stmt := &ast.ReturnStatement{
-		Token: p.curToken,
-	}
-
-	// load the next token
-	p.nextToken()
-
-	// TODO: We're skiping the expressions until we encounter
-	//  a semicolon
-	for !p.curTokenIs(token.SEMICOLON) {
-		p.nextToken()
-	}
-
-	return stmt
 }
 
 // expectPeek advances the parser cursor to the next token if
 // the given `t` is equals the next token, otherwise returns false
+// and add an error to the parser errors field
 func (p *Parser) expectPeek(t token.TokenType) bool {
 	if p.peekTokenIs(t) {
 		p.nextToken()
@@ -130,4 +98,12 @@ func (p *Parser) unexpectedTypeErr(expected, got token.TokenType) {
 // Errors return all errors faced by the parser
 func (p *Parser) Errors() []error {
 	return p.errors
+}
+
+func (p *Parser) addPrefixParserFn(token token.TokenType, f prefixParserFn) {
+	p.prefixParsers[token] = f
+}
+
+func (p *Parser) addInfixParserFn(token token.TokenType, f infixParserFn) {
+	p.infixParsers[token] = f
 }
