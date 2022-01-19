@@ -36,6 +36,8 @@ func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
 func (p *Parser) parseExpression(precedence int) ast.Expression {
 	prefixFn := p.prefixParsers[p.curToken.Type]
 	if prefixFn == nil {
+		p.errors = append(p.errors,
+			fmt.Errorf("no prefix parser found for %s found", p.curToken.Type))
 		return nil
 	}
 
@@ -63,4 +65,16 @@ func (p *Parser) parseIntegerLiteral() ast.Expression {
 
 	lit.Value = intValue
 	return lit
+}
+
+func (p *Parser) parsePrefixExpression() ast.Expression {
+	prefixExp := &ast.PrefixExpression{
+		Token:    p.curToken,
+		Operator: p.curToken.Literal,
+	}
+
+	p.nextToken()
+
+	prefixExp.Right = p.parseExpression(PREFIX)
+	return prefixExp
 }
