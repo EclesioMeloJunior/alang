@@ -1,6 +1,9 @@
 package parser
 
 import (
+	"fmt"
+	"strconv"
+
 	"github.com/EclesioMeloJunior/monkey-lang/ast"
 	"github.com/EclesioMeloJunior/monkey-lang/token"
 )
@@ -44,4 +47,20 @@ func (p *Parser) parseIdentifier() ast.Expression {
 		Token: p.curToken,
 		Value: p.curToken.Literal,
 	}
+}
+
+func (p *Parser) parseIntegerLiteral() ast.Expression {
+	lit := &ast.IntegerLiteral{
+		Token: p.curToken,
+	}
+
+	intValue, err := strconv.ParseInt(p.curToken.Literal, 0, 64)
+	if err != nil {
+		p.errors = append(p.errors,
+			fmt.Errorf("cannot parse %s to int64", p.curToken.Literal))
+		return nil
+	}
+
+	lit.Value = intValue
+	return lit
 }

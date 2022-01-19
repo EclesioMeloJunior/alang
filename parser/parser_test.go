@@ -140,12 +140,13 @@ return 1010101;`
 }
 
 func TestIdentifierExpression(t *testing.T) {
-	input := "foobar;"
+	const input = "foobar;"
 
 	l := lexer.New(input)
 	p := parser.New(l)
 
 	prog := p.ParseProgram()
+	checkParserErrors(t, p)
 
 	if len(prog.Statements) != 1 {
 		t.Fatalf("program has not enough statements. got=%d", len(prog.Statements))
@@ -171,4 +172,42 @@ func TestIdentifierExpression(t *testing.T) {
 	if identifierExpression.TokenLiteral() != declaredVariableName {
 		t.Fatalf("expected token literal=%q. got=%q", declaredVariableName, identifierExpression.Value)
 	}
+}
+
+func TestIntegerLiteralExpression(t *testing.T) {
+	const input = "5;"
+
+	l := lexer.New(input)
+	p := parser.New(l)
+
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("expected 1 statement. got=%d", len(program.Statements))
+	}
+
+	stmt := program.Statements[0]
+	expression, ok := stmt.(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("stmt => expected a *ast.ExpressionStatement. got=%T", stmt)
+	}
+
+	if expression.Token.Type != token.INT {
+		t.Fatalf("expression.Token.Type => expected token type INT. got=%s", expression.Token.Type)
+	}
+
+	intLiteral, ok := expression.Expression.(*ast.IntegerLiteral)
+	if !ok {
+		t.Fatalf("expression.Expression => expected *ast.IntegerLiteral. got=%T", expression.Expression)
+	}
+
+	if intLiteral.TokenLiteral() != "5" {
+		t.Fatalf(`intLiteral.Value => expected "5". got=%s`, expression.TokenLiteral())
+	}
+
+	if intLiteral.Value != 5 {
+		t.Fatalf("intLiteral.Value => expected 5. got=%d", intLiteral.Value)
+	}
+
 }
