@@ -318,3 +318,81 @@ func TestParsingInfixExpressions(t *testing.T) {
 		testIntegerLiteral(t, infixExpression.Right, tt.rightValue)
 	}
 }
+
+func TestParsingLongInfixExpression(t *testing.T) {
+	testcases := []struct {
+		input              string
+		expectedExpression string
+	}{
+
+		{
+			"-a * b;",
+			"((-a) * b)",
+		},
+		{
+			"!-a;",
+			"(!(-a))",
+		},
+		{
+			"a + b + c;",
+			"((a + b) + c)",
+		},
+		{
+			"a + b - c;",
+			"((a + b) - c)",
+		},
+		{
+			"a * b * c;",
+			"((a * b) * c)",
+		},
+		{
+			"a * b / c;",
+			"((a * b) / c)",
+		},
+		{
+			"a + b / c;",
+			"(a + (b / c))",
+		},
+		{
+			"a + b * c + d / e - f;",
+			"(((a + (b * c)) + (d / e)) - f)",
+		},
+		{
+			"5 + 2 * 3;",
+			"(5 + (2 * 3))",
+		},
+		{
+			"3 + 4; -5 * 5;",
+			"(3 + 4)((-5) * 5)",
+		},
+		{
+			"5 > 4 == 3 < 4;",
+			"((5 > 4) == (3 < 4))",
+		},
+		{
+			"5 < 4 != 3 > 4;",
+			"((5 < 4) != (3 > 4))",
+		},
+		{
+			"3 + 4 * 5 == 3 * 1 + 4 * 5;",
+			"((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))",
+		},
+		{
+			"3 + 4 * 5 == 3 * 1 + 4 * 5;",
+			"((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))",
+		},
+	}
+
+	for _, tt := range testcases {
+		l := lexer.New(tt.input)
+		p := parser.New(l)
+
+		prog := p.ParseProgram()
+		checkParserErrors(t, p)
+
+		if prog.String() != tt.expectedExpression {
+			t.Fatalf("expected expression string %s. got=%s",
+				tt.expectedExpression, prog.String())
+		}
+	}
+}
