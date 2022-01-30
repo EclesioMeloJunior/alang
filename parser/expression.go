@@ -108,6 +108,13 @@ func (p *Parser) parseIntegerLiteral() ast.Expression {
 	return lit
 }
 
+func (p *Parser) parseBooleanLiteral() ast.Expression {
+	return &ast.BooleanLiteral{
+		Token: p.curToken,
+		Value: p.curTokenIs(token.TRUE),
+	}
+}
+
 func (p *Parser) parsePrefixExpression() ast.Expression {
 	prefixExp := &ast.PrefixExpression{
 		Token:    p.curToken,
