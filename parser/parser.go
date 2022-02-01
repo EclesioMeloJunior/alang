@@ -42,6 +42,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.addPrefixParserFn(token.BANG, p.parsePrefixExpression)
 	p.addPrefixParserFn(token.MINUS, p.parsePrefixExpression)
 	p.addPrefixParserFn(token.LPAREN, p.parseGroupedExpression)
+	p.addPrefixParserFn(token.IF, p.parseIfExpression)
 
 	p.infixParsers = make(map[token.TokenType]infixParserFn)
 	p.addInfixParserFn(token.PLUS, p.parseInfixExpression)

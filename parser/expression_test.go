@@ -376,3 +376,98 @@ func TestParsingInfixExpression(t *testing.T) {
 		}
 	}
 }
+
+func TestIfExpression(t *testing.T) {
+	const input = `if (x < y) { x }`
+
+	l := lexer.New(input)
+	p := parser.New(l)
+
+	prog := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(prog.Statements) != 1 {
+		t.Fatalf("expected 1 statement. got=%d", len(prog.Statements))
+	}
+
+	stmt, ok := prog.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("expected *ast.ExpressionStatement. got=%T", prog.Statements[0])
+	}
+
+	expression, ok := stmt.Expression.(*ast.IfExpression)
+	if !ok {
+		t.Fatalf("expected *ast.IfExpression. got=%T", stmt.Expression)
+	}
+
+	testInfixExpression(t, expression.Condition, "x", "y", "<")
+
+	if len(expression.Consequence.Statements) != 1 {
+		t.Fatalf("expected condition statements be of length 1. got=%d",
+			len(expression.Consequence.Statements))
+	}
+
+	consequence, ok := expression.Consequence.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("expected consequence statement be *ast.ExpressionStatement. got=%T",
+			expression.Consequence.Statements[0])
+	}
+
+	testIdentifier(t, consequence.Expression, "x")
+
+	if expression.Alternative != nil {
+		t.Fatalf("expeceted expression alternative be nil")
+	}
+}
+
+func TestIfElseExpression(t *testing.T) {
+	const input = `if (x < y) { x } else { y }`
+
+	l := lexer.New(input)
+	p := parser.New(l)
+
+	prog := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(prog.Statements) != 1 {
+		t.Fatalf("expected 1 statement. got=%d", len(prog.Statements))
+	}
+
+	stmt, ok := prog.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("expected *ast.ExpressionStatement. got=%T", prog.Statements[0])
+	}
+
+	expression, ok := stmt.Expression.(*ast.IfExpression)
+	if !ok {
+		t.Fatalf("expected *ast.IfExpression. got=%T", stmt.Expression)
+	}
+
+	testInfixExpression(t, expression.Condition, "x", "y", "<")
+
+	if len(expression.Consequence.Statements) != 1 {
+		t.Fatalf("expected condition statements be of length 1. got=%d",
+			len(expression.Consequence.Statements))
+	}
+
+	consequence, ok := expression.Consequence.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("expected consequence statement be *ast.ExpressionStatement. got=%T",
+			expression.Consequence.Statements[0])
+	}
+
+	testIdentifier(t, consequence.Expression, "x")
+
+	if len(expression.Alternative.Statements) != 1 {
+		t.Fatalf("expected alternative statements be of length 1. got=%d",
+			len(expression.Alternative.Statements))
+	}
+
+	alternative, ok := expression.Alternative.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("expected alternative statement be *ast.ExpressionStatement. got=%T",
+			expression.Alternative.Statements[0])
+	}
+
+	testIdentifier(t, alternative.Expression, "y")
+}
