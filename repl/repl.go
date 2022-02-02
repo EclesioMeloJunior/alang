@@ -6,7 +6,7 @@ import (
 	"io"
 
 	"github.com/EclesioMeloJunior/monkey-lang/lexer"
-	"github.com/EclesioMeloJunior/monkey-lang/token"
+	"github.com/EclesioMeloJunior/monkey-lang/parser"
 )
 
 const PROMPT = ">> "
@@ -17,17 +17,27 @@ func Start(in io.Reader, out io.Writer) {
 	for {
 		fmt.Print(PROMPT)
 		scanned := scanner.Scan()
-
 		if !scanned {
 			return
 		}
 
 		line := scanner.Text()
-
 		l := lexer.New(line)
+		p := parser.New(l)
 
-		for tok := l.NextToken(); tok.Type != token.EOF; tok = l.NextToken() {
-			fmt.Printf("%+v\n", tok)
+		program := p.ParseProgram()
+		if len(p.Errors()) != 0 {
+			printParserErrors(out, p.Errors())
+			continue
 		}
+
+		io.WriteString(out, program.String())
+		io.WriteString(out, "\n")
+	}
+}
+
+func printParserErrors(out io.Writer, errors []error) {
+	for _, err := range errors {
+		io.WriteString(out, "\t"+err.Error()+"\n")
 	}
 }
