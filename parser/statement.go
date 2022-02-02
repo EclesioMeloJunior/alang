@@ -22,9 +22,11 @@ func (p *Parser) parseLetStatement() *ast.LetStatement {
 		return nil
 	}
 
-	// TODO: ignoring what comes after `=` for now.
-	for !p.curTokenIs(token.SEMICOLON) {
-		p.nextToken()
+	p.nextToken()
+	stmt.Value = p.parseExpression(LOWEST)
+
+	if !p.expectPeek(token.SEMICOLON) {
+		return nil
 	}
 
 	return stmt
@@ -38,10 +40,10 @@ func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
 	// load the next token
 	p.nextToken()
 
-	// TODO: We're skiping the expressions until we encounter
-	//  a semicolon
-	for !p.curTokenIs(token.SEMICOLON) {
-		p.nextToken()
+	stmt.Value = p.parseExpression(LOWEST)
+
+	if !p.expectPeek(token.SEMICOLON) {
+		return nil
 	}
 
 	return stmt

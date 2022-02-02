@@ -10,39 +10,40 @@ import (
 	"github.com/EclesioMeloJunior/monkey-lang/token"
 )
 
-func TestLetStatement(t *testing.T) {
-	const prog = `
-let x = 5;
-let y = 10;
-let foobar = 8989;	
-`
-	l := lexer.New(prog)
-	p := parser.New(l)
-
-	program := p.ParseProgram()
-	checkParserErrors(t, p)
-
-	if program == nil {
-		t.Fatalf("parser.ParseProgram return nil, expected not nil")
-	}
-
-	if len(program.Statements) != 3 {
-		t.Fatalf("program.Statements does not contains 3 statements. got=%d",
-			len(program.Statements))
-	}
-
-	tests := []struct {
+func TestLetStatements(t *testing.T) {
+	testcases := []struct {
+		input              string
 		expectedIdentifier string
+		expectedValue      interface{}
 	}{
-		{"x"}, {"y"}, {"foobar"},
+		{
+			`let x = 5;`, "x", 5,
+		},
+		{
+			`let y = true;`, "y", true,
+		},
+		{
+			`let foobar = y;`, "foobar", "y",
+		},
 	}
 
-	for i, tt := range tests {
-		stmt := program.Statements[i]
+	for _, tt := range testcases {
+		l := lexer.New(tt.input)
+		p := parser.New(l)
 
-		if !testLetStatement(t, stmt, tt.expectedIdentifier) {
-			return
+		program := p.ParseProgram()
+		checkParserErrors(t, p)
+
+		if len(program.Statements) != 1 {
+			t.Fatalf("expected 1 statement. got=%d",
+				len(program.Statements))
 		}
+
+		stmt := program.Statements[0]
+		testLetStatement(t, stmt, tt.expectedIdentifier)
+
+		letStatement := stmt.(*ast.LetStatement)
+		testLiteralExpression(t, letStatement.Value, tt.expectedValue)
 	}
 }
 
@@ -103,27 +104,30 @@ func checkParserErrors(t *testing.T, p *parser.Parser) {
 }
 
 func TestReturnStatement(t *testing.T) {
-	const prog = `
-return 5;
-return 10;
-return 1010101;`
-
-	l := lexer.New(prog)
-	p := parser.New(l)
-
-	program := p.ParseProgram()
-	checkParserErrors(t, p)
-
-	if len(program.Statements) != 3 {
-		t.Fatalf("program.Statements does not contains 3 statements. got=%d",
-			len(program.Statements))
+	testcases := []struct {
+		input         string
+		expectedValue interface{}
+	}{
+		{`return 5;`, 5},
+		{`return y;`, "y"},
+		{`return true;`, true},
 	}
 
-	for _, stmt := range program.Statements {
-		returnStmt, ok := stmt.(*ast.ReturnStatement)
+	for _, tt := range testcases {
+		l := lexer.New(tt.input)
+		p := parser.New(l)
+
+		program := p.ParseProgram()
+		checkParserErrors(t, p)
+
+		if len(program.Statements) != 1 {
+			t.Fatalf("expected 1 statement. got=%d",
+				len(program.Statements))
+		}
+
+		returnStmt, ok := program.Statements[0].(*ast.ReturnStatement)
 		if !ok {
-			t.Errorf("stmt not *ast.ReturnStatement. got=%T", stmt)
-			continue
+			t.Errorf("stmt not *ast.ReturnStatement. got=%T", program.Statements[0])
 		}
 
 		if returnStmt.Token.Type != token.RETURN {
@@ -131,10 +135,6 @@ return 1010101;`
 				returnStmt.TokenLiteral())
 		}
 
-		const returnLiteral = "return"
-		if returnStmt.TokenLiteral() != returnLiteral {
-			t.Errorf("returnStmt.TokenLiteral not return. got=%q",
-				returnStmt.TokenLiteral())
-		}
+		testLiteralExpression(t, returnStmt.Value, tt.expectedValue)
 	}
 }
