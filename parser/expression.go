@@ -28,6 +28,7 @@ var precedences = map[token.TokenType]int{
 	token.MINUS:     SUM,
 	token.SLASH:     PRODUCT,
 	token.ASTHERISC: PRODUCT,
+	token.LPAREN:    CALL,
 }
 
 func (p *Parser) peekPrecedence() int {
@@ -204,4 +205,99 @@ func (p *Parser) parseBlockStatement() *ast.BlockStatement {
 	}
 
 	return block
+}
+
+func (p *Parser) parseFunctionLiteral() ast.Expression {
+	fnLiteral := &ast.FunctionLiteral{
+		Token: p.curToken,
+	}
+
+	if !p.expectPeek(token.LPAREN) {
+		return nil
+	}
+
+	fnLiteral.Parameters = p.parseFunctionParameters()
+
+	if !p.expectPeek(token.LBRACE) {
+		return nil
+	}
+
+	fnLiteral.Body = p.parseBlockStatement()
+
+	return fnLiteral
+}
+
+func (p *Parser) parseFunctionParameters() []*ast.Identifier {
+	parameters := []*ast.Identifier{}
+
+	if p.peekTokenIs(token.RPAREN) {
+		p.nextToken()
+		return parameters
+	}
+
+	p.nextToken()
+
+	identifier := &ast.Identifier{
+		Token: p.curToken,
+		Value: p.curToken.Literal,
+	}
+
+	parameters = append(parameters, identifier)
+
+	for p.peekTokenIs(token.COMMA) {
+		p.nextToken() // goes to comma token as it is the peek token
+
+		if !p.expectPeek(token.IDENT) { // after the comma must exists an identifier
+			return nil
+		}
+
+		identifier = &ast.Identifier{
+			Token: p.curToken,
+			Value: p.curToken.Literal,
+		}
+
+		parameters = append(parameters, identifier)
+	}
+
+	if !p.expectPeek(token.RPAREN) {
+		return nil
+	}
+
+	return parameters
+}
+
+func (p *Parser) parseCallExpression(left ast.Expression) ast.Expression {
+	callExpression := &ast.CallExpression{
+		Token:    p.curToken,
+		Function: left,
+	}
+	callExpression.Arguments = p.parseCallArguments()
+	return callExpression
+}
+
+func (p *Parser) parseCallArguments() []ast.Expression {
+	args := []ast.Expression{}
+
+	if p.peekTokenIs(token.RPAREN) {
+		p.nextToken()
+		return args
+	}
+
+	p.nextToken()
+	firstArgument := p.parseExpression(LOWEST)
+	args = append(args, firstArgument)
+
+	for p.peekTokenIs(token.COMMA) {
+		p.nextToken() // advance to token.COMMA
+		p.nextToken() // advance after token.COMMA to evaluate as an expression
+
+		nextArgument := p.parseExpression(LOWEST)
+		args = append(args, nextArgument)
+	}
+
+	if !p.expectPeek(token.RPAREN) {
+		return nil
+	}
+
+	return args
 }
