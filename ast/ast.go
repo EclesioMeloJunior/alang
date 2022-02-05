@@ -8,6 +8,23 @@ import (
 	"github.com/EclesioMeloJunior/monkey-lang/token"
 )
 
+var (
+	_ Node      = (*Program)(nil)
+	_ Statement = (*LetStatement)(nil)
+	_ Statement = (*ReturnStatement)(nil)
+	_ Statement = (*ExpressionStatement)(nil)
+	_ Statement = (*BlockStatement)(nil)
+
+	_ Expression = (*Identifier)(nil)
+	_ Expression = (*BooleanLiteral)(nil)
+	_ Expression = (*IntegerLiteral)(nil)
+	_ Expression = (*PrefixExpression)(nil)
+	_ Expression = (*InfixExpression)(nil)
+	_ Expression = (*IfExpression)(nil)
+	_ Expression = (*FunctionLiteral)(nil)
+	_ Expression = (*CallExpression)(nil)
+)
+
 type Node interface {
 	TokenLiteral() string
 	fmt.Stringer
@@ -22,13 +39,6 @@ type Expression interface {
 	Node
 	expressionNode()
 }
-
-var (
-	_ Node      = (*Program)(nil)
-	_ Statement = (*LetStatement)(nil)
-	_ Statement = (*ReturnStatement)(nil)
-	_ Statement = (*ExpressionStatement)(nil)
-)
 
 type Program struct {
 	Statements []Statement
