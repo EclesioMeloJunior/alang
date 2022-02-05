@@ -16,8 +16,15 @@ func TestEvaluationLiteralObjects(t *testing.T) {
 	}{
 		{"5;", 5},
 		{"10;", 10},
+
 		{"true;", true},
 		{"false;", false},
+		{"!true;", false},
+		{"!false;", true},
+		{"!!true;", true},
+		{"!!false;", false},
+		{"!5;", false},
+		{"!!5;", true},
 	}
 
 	for _, tt := range testcases {
