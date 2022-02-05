@@ -21,22 +21,22 @@ type Representation interface {
 }
 
 type Integer struct {
-	value int64
+	Value int64
 }
 
 func (i *Integer) Inspect() string {
-	return fmt.Sprintf("%d", i.value)
+	return fmt.Sprintf("%d", i.Value)
 }
 func (i *Integer) Type() Type {
 	return INTEGER_OBJ
 }
 
 type Boolean struct {
-	value bool
+	Value bool
 }
 
 func (b *Boolean) Inspect() string {
-	return fmt.Sprintf("%t", b.value)
+	return fmt.Sprintf("%t", b.Value)
 }
 func (b *Boolean) Type() Type {
 	return BOOLEAN_OBJ
