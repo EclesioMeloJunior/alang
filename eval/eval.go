@@ -32,10 +32,18 @@ func Eval(node ast.Node) object.Representation {
 
 		switch node.Operator {
 		case token.BANG:
-			return evalBangOperatorExpression(right)
+			return evalBangPrefixOperatorExpression(right)
+		case token.MINUS:
+			return evalMinusPrefixOperatorExpression(right)
 		default:
 			return Null
 		}
+
+	case *ast.InfixExpression:
+		left := Eval(node.Left)
+		right := Eval(node.Right)
+
+		return evalInfixExpression(node.Operator, left, right)
 
 	case *ast.Program:
 		return evalStatements(node.Statements)
@@ -58,7 +66,7 @@ func evalStatements(stmts []ast.Statement) object.Representation {
 	return rep
 }
 
-func evalBangOperatorExpression(right object.Representation) object.Representation {
+func evalBangPrefixOperatorExpression(right object.Representation) object.Representation {
 	switch right {
 	case True:
 		return False
@@ -68,5 +76,56 @@ func evalBangOperatorExpression(right object.Representation) object.Representati
 		return True
 	default:
 		return False
+	}
+}
+
+func evalMinusPrefixOperatorExpression(right object.Representation) object.Representation {
+	switch right := right.(type) {
+	case *object.Integer:
+		return &object.Integer{
+			Value: -right.Value,
+		}
+	default:
+		return Null
+	}
+}
+
+func evalInfixExpression(op string, left, right object.Representation) object.Representation {
+	_, ok := left.(*object.Integer)
+	if !ok {
+		return Null
+	}
+
+	_, ok = right.(*object.Integer)
+	if !ok {
+		return Null
+	}
+
+	return evalIntegerInfixExpression(op, left, right)
+}
+
+func evalIntegerInfixExpression(op string, left, right object.Representation) object.Representation {
+	leftInteger := left.(*object.Integer)
+	rightInteger := right.(*object.Integer)
+
+	switch op {
+	case token.PLUS:
+		return &object.Integer{
+			Value: leftInteger.Value + rightInteger.Value,
+		}
+	case token.MINUS:
+		return &object.Integer{
+			Value: leftInteger.Value - rightInteger.Value,
+		}
+	case token.ASTHERISC:
+		return &object.Integer{
+			Value: leftInteger.Value * rightInteger.Value,
+		}
+	case token.SLASH:
+		return &object.Integer{
+			Value: int64(leftInteger.Value / rightInteger.Value),
+		}
+	default:
+		return Null
 	}
 }
