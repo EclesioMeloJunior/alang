@@ -11,6 +11,9 @@ func Eval(node ast.Node) object.Representation {
 	case *ast.IntegerLiteral:
 		return &object.Integer{Value: node.Value}
 
+	case *ast.BooleanLiteral:
+		return &object.Boolean{Value: node.Value}
+
 	case *ast.Program:
 		return evalStatements(node.Statements)
 
