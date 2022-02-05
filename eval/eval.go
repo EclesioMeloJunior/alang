@@ -125,6 +125,26 @@ func evalIntegerInfixExpression(op string, left, right object.Representation) ob
 		return &object.Integer{
 			Value: int64(leftInteger.Value / rightInteger.Value),
 		}
+	case token.GT:
+		if leftInteger.Value > rightInteger.Value {
+			return True
+		}
+		return False
+	case token.LT:
+		if leftInteger.Value < rightInteger.Value {
+			return True
+		}
+		return False
+	case token.NOT_EQ:
+		if leftInteger.Value != rightInteger.Value {
+			return True
+		}
+		return False
+	case token.EQ:
+		if leftInteger.Value == rightInteger.Value {
+			return True
+		}
+		return False
 	default:
 		return Null
 	}
