@@ -31,6 +31,15 @@ func TestEvaluationLiteralObjects(t *testing.T) {
 		{"3 * (3 * 3) + 10;", 37},
 		{"(5 + 10 * 2 + 15 / 3) * 2 + -10;", 50},
 
+		{"3 > 5;", false},
+		{"1 < 2;", true},
+		{"1 < 1;", false},
+		{"1 < 1;", false},
+		{"1 == 1;", true},
+		{"1 != 1;", false},
+		{"1 == 2;", false},
+		{"1 != 2;", true},
+
 		{"true;", true},
 		{"false;", false},
 		{"!true;", false},
@@ -40,19 +49,19 @@ func TestEvaluationLiteralObjects(t *testing.T) {
 		{"!5;", false},
 		{"!!5;", true},
 
-		{"3 > 5;", false},
-		{"1 < 2;", true},
-		{"1 < 1;", false},
-		{"1 < 1;", false},
-		{"1 == 1;", true},
-		{"1 != 1;", false},
-		{"1 == 2;", false},
-		{"1 != 2;", true},
+		{"true == true;", true},
+		{"true == false;", false},
+		{"true != false;", true},
+		{"false == false;", true},
+		{"false != false;", false},
+		{"(1 < 2) == true;", true},
+		{"(1 > 2) == true;", false},
+		{"(1 > 2) == false;", true},
 	}
 
 	for _, tt := range testcases {
 		evaluated := testEval(tt.input)
-		testEvaluatedObject(t, evaluated, tt.expected)
+		testEvaluatedObject(t, tt.input, evaluated, tt.expected)
 	}
 }
 
@@ -64,35 +73,35 @@ func testEval(input string) object.Representation {
 	return eval.Eval(prog)
 }
 
-func testEvaluatedObject(t *testing.T, r object.Representation, expected interface{}) {
+func testEvaluatedObject(t *testing.T, input string, r object.Representation, expected interface{}) {
 	switch exp := expected.(type) {
 	case int:
-		testIntegerObject(t, r, int64(exp))
+		testIntegerObject(t, input, r, int64(exp))
 	case int64:
-		testIntegerObject(t, r, int64(exp))
+		testIntegerObject(t, input, r, int64(exp))
 	case bool:
-		testBooleanObject(t, r, exp)
+		testBooleanObject(t, input, r, exp)
 	}
 }
 
-func testIntegerObject(t *testing.T, r object.Representation, expected int64) {
+func testIntegerObject(t *testing.T, input string, r object.Representation, expected int64) {
 	result, ok := r.(*object.Integer)
 	if !ok {
-		t.Fatalf("expected *object.Integer. got=%T (%+v)", r, r)
+		t.Fatalf("%s\n\texpected *object.Integer. got=%T (%+v)", input, r, r)
 	}
 
 	if result.Value != expected {
-		t.Fatalf("expected %d. got=%d", expected, result.Value)
+		t.Fatalf("%s\n\texpected %d. got=%d", input, expected, result.Value)
 	}
 }
 
-func testBooleanObject(t *testing.T, r object.Representation, expected bool) {
+func testBooleanObject(t *testing.T, input string, r object.Representation, expected bool) {
 	result, ok := r.(*object.Boolean)
 	if !ok {
-		t.Fatalf("expected *object.Boolean. got=%T (%+v)", r, r)
+		t.Fatalf("%s\n\texpected *object.Boolean. got=%T (%+v)", input, r, r)
 	}
 
 	if result.Value != expected {
-		t.Fatalf("expected %t. got=%t", expected, result.Value)
+		t.Fatalf("%s\n\texpected %t. got=%t", input, expected, result.Value)
 	}
 }

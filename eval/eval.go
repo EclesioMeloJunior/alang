@@ -91,57 +91,83 @@ func evalMinusPrefixOperatorExpression(right object.Representation) object.Repre
 }
 
 func evalInfixExpression(op string, left, right object.Representation) object.Representation {
-	_, ok := left.(*object.Integer)
-	if !ok {
+	switch l := left.(type) {
+	case *object.Integer:
+
+		switch r := right.(type) {
+		case *object.Integer:
+			return evalIntegerInfixExpression(op, l, r)
+		default:
+			return Null
+		}
+
+	case *object.Boolean:
+
+		switch r := right.(type) {
+		case *object.Boolean:
+			return evalBooleanInfixExpression(op, l, r)
+		default:
+			return Null
+		}
+
+	default:
 		return Null
 	}
 
-	_, ok = right.(*object.Integer)
-	if !ok {
-		return Null
-	}
-
-	return evalIntegerInfixExpression(op, left, right)
 }
 
-func evalIntegerInfixExpression(op string, left, right object.Representation) object.Representation {
-	leftInteger := left.(*object.Integer)
-	rightInteger := right.(*object.Integer)
-
+func evalIntegerInfixExpression(op string, left, right *object.Integer) object.Representation {
 	switch op {
 	case token.PLUS:
 		return &object.Integer{
-			Value: leftInteger.Value + rightInteger.Value,
+			Value: left.Value + right.Value,
 		}
 	case token.MINUS:
 		return &object.Integer{
-			Value: leftInteger.Value - rightInteger.Value,
+			Value: left.Value - right.Value,
 		}
 	case token.ASTHERISC:
 		return &object.Integer{
-			Value: leftInteger.Value * rightInteger.Value,
+			Value: left.Value * right.Value,
 		}
 	case token.SLASH:
 		return &object.Integer{
-			Value: int64(leftInteger.Value / rightInteger.Value),
+			Value: int64(left.Value / right.Value),
 		}
 	case token.GT:
-		if leftInteger.Value > rightInteger.Value {
+		if left.Value > right.Value {
 			return True
 		}
 		return False
 	case token.LT:
-		if leftInteger.Value < rightInteger.Value {
+		if left.Value < right.Value {
 			return True
 		}
 		return False
 	case token.NOT_EQ:
-		if leftInteger.Value != rightInteger.Value {
+		if left.Value != right.Value {
 			return True
 		}
 		return False
 	case token.EQ:
-		if leftInteger.Value == rightInteger.Value {
+		if left.Value == right.Value {
+			return True
+		}
+		return False
+	default:
+		return Null
+	}
+}
+
+func evalBooleanInfixExpression(op string, left, right *object.Boolean) object.Representation {
+	switch op {
+	case token.NOT_EQ:
+		if left.Value != right.Value {
+			return True
+		}
+		return False
+	case token.EQ:
+		if left.Value == right.Value {
 			return True
 		}
 		return False
