@@ -65,6 +65,26 @@ func TestEvaluationLiteralObjects(t *testing.T) {
 	}
 }
 
+func TestEvaluatesConditions(t *testing.T) {
+	testcases := []struct {
+		input    string
+		expected interface{}
+	}{
+		{"if (true) { 10 }", 10},
+		{"if (false) { 10 }", nil},
+		{"if (1) { 10 }", 10},
+		{"if (1 < 2) { 10 }", 10},
+		{"if (1 > 2) { 10 }", nil},
+		{"if (1 > 2) { 10 } else { 10 + 10 }", 20},
+		{"if (!5) { 10 } else { 2 + 3 }", 5},
+	}
+
+	for _, tt := range testcases {
+		evaluated := testEval(tt.input)
+		testEvaluatedObject(t, tt.input, evaluated, tt.expected)
+	}
+}
+
 func testEval(input string) object.Representation {
 	l := lexer.New(input)
 	p := parser.New(l)
@@ -75,6 +95,8 @@ func testEval(input string) object.Representation {
 
 func testEvaluatedObject(t *testing.T, input string, r object.Representation, expected interface{}) {
 	switch exp := expected.(type) {
+	case nil:
+		testNullObject(t, input, r)
 	case int:
 		testIntegerObject(t, input, r, int64(exp))
 	case int64:
@@ -103,5 +125,12 @@ func testBooleanObject(t *testing.T, input string, r object.Representation, expe
 
 	if result.Value != expected {
 		t.Fatalf("%s\n\texpected %t. got=%t", input, expected, result.Value)
+	}
+}
+
+func testNullObject(t *testing.T, input string, r object.Representation) {
+	_, ok := r.(*object.Null)
+	if !ok {
+		t.Fatalf("%s\n\texpected *object.Null. got=%T (%+v)", input, r, r)
 	}
 }

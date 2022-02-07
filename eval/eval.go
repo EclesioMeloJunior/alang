@@ -45,6 +45,12 @@ func Eval(node ast.Node) object.Representation {
 
 		return evalInfixExpression(node.Operator, left, right)
 
+	case *ast.BlockStatement:
+		return evalStatements(node.Statements)
+
+	case *ast.IfExpression:
+		return evalIfExpression(node)
+
 	case *ast.Program:
 		return evalStatements(node.Statements)
 
@@ -53,6 +59,29 @@ func Eval(node ast.Node) object.Representation {
 
 	default:
 		return nil
+	}
+}
+
+func evalIfExpression(node *ast.IfExpression) object.Representation {
+	condition := Eval(node.Condition)
+
+	switch condition {
+	case Null:
+		if node.Alternative != nil {
+			return Eval(node.Alternative)
+		}
+		return Null
+
+	case False:
+		if node.Alternative != nil {
+			return Eval(node.Alternative)
+		}
+		return Null
+
+	case True:
+		return Eval(node.Consequence)
+	default:
+		return Eval(node.Consequence)
 	}
 }
 
