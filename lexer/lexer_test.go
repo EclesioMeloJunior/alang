@@ -3,8 +3,8 @@ package lexer_test
 import (
 	"testing"
 
-	"github.com/EclesioMeloJunior/monkey-lang/lexer"
-	"github.com/EclesioMeloJunior/monkey-lang/token"
+	"github.com/EclesioMeloJunior/ducklang/lexer"
+	"github.com/EclesioMeloJunior/ducklang/token"
 )
 
 func Test_BasicTokens_NextToken(t *testing.T) {

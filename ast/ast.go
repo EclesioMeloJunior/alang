@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/EclesioMeloJunior/monkey-lang/token"
+	"github.com/EclesioMeloJunior/ducklang/token"
 )
 
 var (

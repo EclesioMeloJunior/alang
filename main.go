@@ -5,7 +5,7 @@ import (
 	"os"
 	"os/user"
 
-	"github.com/EclesioMeloJunior/monkey-lang/repl"
+	"github.com/EclesioMeloJunior/ducklang/repl"
 )
 
 func main() {

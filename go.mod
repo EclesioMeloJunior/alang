@@ -1,3 +1,3 @@
-module github.com/EclesioMeloJunior/monkey-lang
+module github.com/EclesioMeloJunior/ducklang
 
 go 1.17

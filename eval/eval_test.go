@@ -3,10 +3,10 @@ package eval_test
 import (
 	"testing"
 
-	"github.com/EclesioMeloJunior/monkey-lang/eval"
-	"github.com/EclesioMeloJunior/monkey-lang/lexer"
-	"github.com/EclesioMeloJunior/monkey-lang/object"
-	"github.com/EclesioMeloJunior/monkey-lang/parser"
+	"github.com/EclesioMeloJunior/ducklang/eval"
+	"github.com/EclesioMeloJunior/ducklang/lexer"
+	"github.com/EclesioMeloJunior/ducklang/object"
+	"github.com/EclesioMeloJunior/ducklang/parser"
 )
 
 func TestEvaluationLiteralObjects(t *testing.T) {

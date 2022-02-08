@@ -1,8 +1,8 @@
 package parser
 
 import (
-	"github.com/EclesioMeloJunior/monkey-lang/ast"
-	"github.com/EclesioMeloJunior/monkey-lang/token"
+	"github.com/EclesioMeloJunior/ducklang/ast"
+	"github.com/EclesioMeloJunior/ducklang/token"
 )
 
 func (p *Parser) parseLetStatement() *ast.LetStatement {

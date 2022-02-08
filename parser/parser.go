@@ -3,9 +3,9 @@ package parser
 import (
 	"fmt"
 
-	"github.com/EclesioMeloJunior/monkey-lang/ast"
-	"github.com/EclesioMeloJunior/monkey-lang/lexer"
-	"github.com/EclesioMeloJunior/monkey-lang/token"
+	"github.com/EclesioMeloJunior/ducklang/ast"
+	"github.com/EclesioMeloJunior/ducklang/lexer"
+	"github.com/EclesioMeloJunior/ducklang/token"
 )
 
 type (

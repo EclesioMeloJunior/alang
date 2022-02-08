@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/EclesioMeloJunior/monkey-lang/eval"
-	"github.com/EclesioMeloJunior/monkey-lang/lexer"
-	"github.com/EclesioMeloJunior/monkey-lang/parser"
+	"github.com/EclesioMeloJunior/ducklang/eval"
+	"github.com/EclesioMeloJunior/ducklang/lexer"
+	"github.com/EclesioMeloJunior/ducklang/parser"
 )
 
 const PROMPT = ">> "

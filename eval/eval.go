@@ -3,9 +3,9 @@ package eval
 import (
 	"fmt"
 
-	"github.com/EclesioMeloJunior/monkey-lang/ast"
-	"github.com/EclesioMeloJunior/monkey-lang/object"
-	"github.com/EclesioMeloJunior/monkey-lang/token"
+	"github.com/EclesioMeloJunior/ducklang/ast"
+	"github.com/EclesioMeloJunior/ducklang/object"
+	"github.com/EclesioMeloJunior/ducklang/token"
 )
 
 var (
