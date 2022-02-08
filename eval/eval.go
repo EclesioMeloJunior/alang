@@ -3,9 +3,9 @@ package eval
 import (
 	"fmt"
 
-	"github.com/EclesioMeloJunior/ducklang/ast"
-	"github.com/EclesioMeloJunior/ducklang/object"
-	"github.com/EclesioMeloJunior/ducklang/token"
+	"github.com/EclesioMeloJunior/alang/ast"
+	"github.com/EclesioMeloJunior/alang/object"
+	"github.com/EclesioMeloJunior/alang/token"
 )
 
 var (
@@ -28,6 +28,52 @@ func Eval(node ast.Node, env *object.Env) object.Representation {
 		}
 
 		return False
+
+	case *ast.FunctionLiteral:
+		params := node.Parameters
+		body := node.Body
+		return &object.Function{
+			Parameters: params,
+			Body:       body,
+			Env:        env,
+		}
+
+	case *ast.CallExpression:
+		representation := Eval(node.Function, env)
+		if isError(representation) {
+			return representation
+		}
+
+		function, ok := representation.(*object.Function)
+		if !ok {
+			return errorF("not a function: %s", representation.Type())
+		}
+
+		if len(node.Arguments) != len(function.Parameters) {
+			return errorF("expected %d arguments. got=%d",
+				len(function.Parameters), len(node.Arguments))
+		}
+
+		enclosedEnv := object.NewEnclosedEnv(function.Env)
+		if len(node.Arguments) != 0 {
+			arguments := make([]object.Representation, len(node.Arguments))
+
+			for idx, argument := range node.Arguments {
+				evaluatedArg := Eval(argument, env)
+				if isError(evaluatedArg) {
+					return evaluatedArg
+				}
+
+				arguments[idx] = evaluatedArg
+			}
+
+			for idx, param := range function.Parameters {
+				enclosedEnv.Set(param.Value, arguments[idx])
+			}
+		}
+
+		evaluatedFnBody := Eval(function.Body, enclosedEnv)
+		return unwrapReturnValue(evaluatedFnBody)
 
 	case *ast.PrefixExpression:
 		right := Eval(node.Right, env)
@@ -271,6 +317,15 @@ func evalBooleanInfixExpression(op string, left, right *object.Boolean) object.R
 		return False
 	default:
 		return errorF("unknown operator: %s %s %s", left.Type(), op, right.Type())
+	}
+}
+
+func unwrapReturnValue(rep object.Representation) object.Representation {
+	switch rep := rep.(type) {
+	case *object.Return:
+		return rep.Value
+	default:
+		return rep
 	}
 }
 

@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/EclesioMeloJunior/ducklang/eval"
-	"github.com/EclesioMeloJunior/ducklang/lexer"
-	"github.com/EclesioMeloJunior/ducklang/object"
-	"github.com/EclesioMeloJunior/ducklang/parser"
+	"github.com/EclesioMeloJunior/alang/eval"
+	"github.com/EclesioMeloJunior/alang/lexer"
+	"github.com/EclesioMeloJunior/alang/object"
+	"github.com/EclesioMeloJunior/alang/parser"
 )
 
 const PROMPT = ">> "

@@ -1,12 +1,18 @@
 package object
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+
+	"github.com/EclesioMeloJunior/alang/ast"
+)
 
 var (
 	_ Representation = (*Integer)(nil)
 	_ Representation = (*Boolean)(nil)
 	_ Representation = (*Null)(nil)
 	_ Representation = (*Error)(nil)
+	_ Representation = (*Function)(nil)
 )
 
 type Type string
@@ -17,6 +23,7 @@ const (
 	NULL_OBJ            Type = "NULL"
 	RETURN_VALUE_OBJECT Type = "RETURN_VALUE"
 	ERROR               Type = "ERROR"
+	FUNCTION_OBJ             = "FUNCTION_OBJ"
 )
 
 type Representation interface {
@@ -76,4 +83,23 @@ func (e *Error) Type() Type {
 
 func (e *Error) Inspect() string {
 	return "ERROR: " + e.Message
+}
+
+type Function struct {
+	Parameters []*ast.Identifier
+	Body       *ast.BlockStatement
+	Env        *Env
+}
+
+func (f *Function) Type() Type {
+	return FUNCTION_OBJ
+}
+
+func (f *Function) Inspect() string {
+	params := make([]string, len(f.Parameters))
+	for i, param := range f.Parameters {
+		params[i] = param.String()
+	}
+
+	return fmt.Sprintf("fn(%s){...}", strings.Join(params, ", "))
 }

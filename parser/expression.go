@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/EclesioMeloJunior/ducklang/ast"
-	"github.com/EclesioMeloJunior/ducklang/token"
+	"github.com/EclesioMeloJunior/alang/ast"
+	"github.com/EclesioMeloJunior/alang/token"
 )
 
 const (

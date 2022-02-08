@@ -4,10 +4,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/EclesioMeloJunior/ducklang/ast"
-	"github.com/EclesioMeloJunior/ducklang/lexer"
-	"github.com/EclesioMeloJunior/ducklang/parser"
-	"github.com/EclesioMeloJunior/ducklang/token"
+	"github.com/EclesioMeloJunior/alang/ast"
+	"github.com/EclesioMeloJunior/alang/lexer"
+	"github.com/EclesioMeloJunior/alang/parser"
+	"github.com/EclesioMeloJunior/alang/token"
 )
 
 func TestLetStatements(t *testing.T) {

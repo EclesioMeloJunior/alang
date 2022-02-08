@@ -5,7 +5,7 @@ import (
 	"os"
 	"os/user"
 
-	"github.com/EclesioMeloJunior/ducklang/repl"
+	"github.com/EclesioMeloJunior/alang/repl"
 )
 
 func main() {
@@ -14,7 +14,7 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Printf("Hello %s! This is the Monkey Lang!\n", user.Username)
+	fmt.Printf("Hello %s! This is the alang!\n", user.Username)
 	fmt.Printf("Feel free to type in commands\n")
 
 	repl.Start(os.Stdin, os.Stdout)

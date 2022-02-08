@@ -3,10 +3,10 @@ package eval_test
 import (
 	"testing"
 
-	"github.com/EclesioMeloJunior/ducklang/eval"
-	"github.com/EclesioMeloJunior/ducklang/lexer"
-	"github.com/EclesioMeloJunior/ducklang/object"
-	"github.com/EclesioMeloJunior/ducklang/parser"
+	"github.com/EclesioMeloJunior/alang/eval"
+	"github.com/EclesioMeloJunior/alang/lexer"
+	"github.com/EclesioMeloJunior/alang/object"
+	"github.com/EclesioMeloJunior/alang/parser"
 )
 
 func TestEvaluationLiteralObjects(t *testing.T) {
@@ -146,6 +146,47 @@ func TestEvalutaionLetStatements(t *testing.T) {
 		{`let x = (2 / 3) + 1; x;`, 1},
 		{`let x = 10; let b = x; b;`, 10},
 		{`let x = 5; let b = x * 5; b + 1;`, 26},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		testEvaluatedObject(t, tt.input, evaluated, tt.expected)
+	}
+}
+
+func TestEvaluatesFunction(t *testing.T) {
+	const input = `fn(x) { x + 2; };`
+
+	evaluated := testEval(input)
+	function, ok := evaluated.(*object.Function)
+	if !ok {
+		t.Fatalf("expected *object.Function. got=%T", evaluated)
+	}
+
+	if len(function.Parameters) != 1 {
+		t.Fatalf("expected 2 parameters. got=%d", len(function.Parameters))
+	}
+
+	const expectedBody = "(x + 2)"
+	if function.Body.String() != expectedBody {
+		t.Fatalf("expected %s body. got=%s", expectedBody, function.Body.String())
+	}
+}
+
+func TestEvaluatesFunctionsCalls(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected interface{}
+	}{
+		{`let id = fn(x) { x; }; id(5);`, 5},
+		{`let id = fn(x) { return x; }; id(5);`, 5},
+		{`let double = fn(x) { x * 2; }; double(2);`, 4},
+		{`let add = fn(x, y) { x + y; }; add(5, 5);`, 10},
+		{`let add = fn(x, y) { x + y; }; add(5 + 5, add(5, 5));`, 20},
+		{`fn(x, y) { x + y; }(6, 6);`, 12},
+		{`fn(x, y, z) { x + y; }(6, 6);`, &object.Error{
+			Message: "expected 3 arguments. got=2",
+		}},
 	}
 
 	for _, tt := range tests {

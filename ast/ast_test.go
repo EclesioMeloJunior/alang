@@ -3,8 +3,8 @@ package ast_test
 import (
 	"testing"
 
-	"github.com/EclesioMeloJunior/ducklang/ast"
-	"github.com/EclesioMeloJunior/ducklang/token"
+	"github.com/EclesioMeloJunior/alang/ast"
+	"github.com/EclesioMeloJunior/alang/token"
 )
 
 func TestString(t *testing.T) {
