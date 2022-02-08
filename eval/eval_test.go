@@ -128,6 +128,7 @@ func TestErrorWhileEvaluating(t *testing.T) {
 			}
 			return 1;
 		}`, &object.Error{Message: "unknown operator: BOOLEAN + BOOLEAN"}},
+		{"x;", &object.Error{Message: "identifier not found: x"}},
 	}
 
 	for _, tt := range tests {
@@ -137,7 +138,20 @@ func TestErrorWhileEvaluating(t *testing.T) {
 }
 
 func TestEvalutaionLetStatements(t *testing.T) {
-	t.Fail()
+	tests := []struct {
+		input    string
+		expected interface{}
+	}{
+		{`let x = 5; x;`, 5},
+		{`let x = (2 / 3) + 1; x;`, 1},
+		{`let x = 10; let b = x; b;`, 10},
+		{`let x = 5; let b = x * 5; b + 1;`, 26},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		testEvaluatedObject(t, tt.input, evaluated, tt.expected)
+	}
 }
 
 func testEval(input string) object.Representation {
@@ -145,7 +159,7 @@ func testEval(input string) object.Representation {
 	p := parser.New(l)
 
 	prog := p.ParseProgram()
-	return eval.Eval(prog)
+	return eval.Eval(prog, object.NewEnv())
 }
 
 func testEvaluatedObject(t *testing.T, input string, r object.Representation, expected interface{}) {

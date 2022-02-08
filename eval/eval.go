@@ -14,7 +14,7 @@ var (
 	False *object.Boolean = &object.Boolean{Value: false}
 )
 
-func Eval(node ast.Node) object.Representation {
+func Eval(node ast.Node, env *object.Env) object.Representation {
 	switch node := node.(type) {
 
 	case *ast.IntegerLiteral:
@@ -30,7 +30,7 @@ func Eval(node ast.Node) object.Representation {
 		return False
 
 	case *ast.PrefixExpression:
-		right := Eval(node.Right)
+		right := Eval(node.Right, env)
 		if isError(right) {
 			return right
 		}
@@ -45,12 +45,12 @@ func Eval(node ast.Node) object.Representation {
 		}
 
 	case *ast.InfixExpression:
-		left := Eval(node.Left)
+		left := Eval(node.Left, env)
 		if isError(left) {
 			return left
 		}
 
-		right := Eval(node.Right)
+		right := Eval(node.Right, env)
 		if isError(right) {
 			return right
 		}
@@ -58,30 +58,47 @@ func Eval(node ast.Node) object.Representation {
 		return evalInfixExpression(node.Operator, left, right)
 
 	case *ast.ReturnStatement:
-		returned := Eval(node.Value)
+		returned := Eval(node.Value, env)
 		return &object.Return{
 			Value: returned,
 		}
 
+	case *ast.LetStatement:
+		valueToBind := Eval(node.Value, env)
+		if isError(valueToBind) {
+			return valueToBind
+		}
+
+		env.Set(node.Name.Value, valueToBind)
+		return nil
+
+	case *ast.Identifier:
+		stored, has := env.Get(node.Value)
+		if !has {
+			return errorF("identifier not found: %s", node.Value)
+		}
+
+		return stored
+
 	case *ast.BlockStatement:
-		return evalBlockStatements(node.Statements)
+		return evalBlockStatements(node.Statements, env)
 
 	case *ast.IfExpression:
-		return evalIfExpression(node)
+		return evalIfExpression(node, env)
 
 	case *ast.Program:
-		return evalProgram(node.Statements)
+		return evalProgram(node.Statements, env)
 
 	case *ast.ExpressionStatement:
-		return Eval(node.Expression)
+		return Eval(node.Expression, env)
 
 	default:
 		return nil
 	}
 }
 
-func evalIfExpression(node *ast.IfExpression) object.Representation {
-	condition := Eval(node.Condition)
+func evalIfExpression(node *ast.IfExpression, env *object.Env) object.Representation {
+	condition := Eval(node.Condition, env)
 
 	if isError(condition) {
 		// cannot evaluate since the Expression is not valid
@@ -95,28 +112,28 @@ func evalIfExpression(node *ast.IfExpression) object.Representation {
 	switch condition {
 	case Null:
 		if node.Alternative != nil {
-			return Eval(node.Alternative)
+			return Eval(node.Alternative, env)
 		}
 		return Null
 
 	case False:
 		if node.Alternative != nil {
-			return Eval(node.Alternative)
+			return Eval(node.Alternative, env)
 		}
 		return Null
 
 	case True:
-		return Eval(node.Consequence)
+		return Eval(node.Consequence, env)
 	default:
-		return Eval(node.Consequence)
+		return Eval(node.Consequence, env)
 	}
 }
 
-func evalBlockStatements(stmts []ast.Statement) object.Representation {
+func evalBlockStatements(stmts []ast.Statement, env *object.Env) object.Representation {
 	var rep object.Representation
 
 	for _, stmt := range stmts {
-		rep = Eval(stmt)
+		rep = Eval(stmt, env)
 
 		switch rep := rep.(type) {
 		case *object.Return:
@@ -129,11 +146,11 @@ func evalBlockStatements(stmts []ast.Statement) object.Representation {
 	return rep
 }
 
-func evalProgram(stmts []ast.Statement) object.Representation {
+func evalProgram(stmts []ast.Statement, env *object.Env) object.Representation {
 	var rep object.Representation
 
 	for _, stmt := range stmts {
-		rep = Eval(stmt)
+		rep = Eval(stmt, env)
 
 		switch rep := rep.(type) {
 		case *object.Return:
