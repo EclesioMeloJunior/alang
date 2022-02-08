@@ -136,6 +136,10 @@ func TestErrorWhileEvaluating(t *testing.T) {
 	}
 }
 
+func TestEvalutaionLetStatements(t *testing.T) {
+	t.Fail()
+}
+
 func testEval(input string) object.Representation {
 	l := lexer.New(input)
 	p := parser.New(l)
