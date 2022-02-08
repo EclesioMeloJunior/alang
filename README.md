@@ -1,6 +1,6 @@
 # ducklang
 
-Writing a interpred, turing complete language in Go.
+An interpred, turing complete language in Go.
 
 ## Examples
 
