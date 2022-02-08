@@ -1,7 +1,6 @@
-# Monkey Language
+# ducklang
 
-Writing a interpreter to the turing complete Monkey Language in Go.
-_Following the book: Writing an interpreter in Go_
+An interpred, turing complete language in Go.
 
 ## Examples
 
