@@ -72,7 +72,7 @@ func TestEvaluatesConditions(t *testing.T) {
 	}{
 		{"if (true) { 10 }", 10},
 		{"if (false) { 10 }", nil},
-		{"if (1) { 10 }", 10},
+		{"if (1) { 10 }", &object.Error{Message: "condition must evaluate to a boolean, got=INTEGER"}},
 		{"if (1 < 2) { 10 }", 10},
 		{"if (1 > 2) { 10 }", nil},
 		{"if (1 > 2) { 10 } else { 10 + 10 }", 20},
@@ -80,6 +80,57 @@ func TestEvaluatesConditions(t *testing.T) {
 	}
 
 	for _, tt := range testcases {
+		evaluated := testEval(tt.input)
+		testEvaluatedObject(t, tt.input, evaluated, tt.expected)
+	}
+}
+
+func TestEvaluatesReturns(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected interface{}
+	}{
+		{"return 10;", 10},
+		{"return 10; 9;", 10},
+		{"return 2 * 5; 9;", 10},
+		{"7; return 2 * 5; 9;", 10},
+		{`if (true) {
+			if (true) {
+				return 10;
+			}
+			return 1;
+		}`, 10},
+	}
+
+	for _, tt := range tests {
+		evalulated := testEval(tt.input)
+		testEvaluatedObject(t, tt.input, evalulated, tt.expected)
+	}
+}
+
+func TestErrorWhileEvaluating(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected *object.Error
+	}{
+		{"-(10 + -(true + false));", &object.Error{Message: "unknown operator: BOOLEAN + BOOLEAN"}},
+		{"5 + true;", &object.Error{Message: "type mismatch: INTEGER + BOOLEAN"}},
+		{"5 + true; 5;", &object.Error{Message: "type mismatch: INTEGER + BOOLEAN"}},
+		{"-true;", &object.Error{Message: "unknown operator: -BOOLEAN"}},
+		{"true + false;", &object.Error{Message: "unknown operator: BOOLEAN + BOOLEAN"}},
+		{"5; true + false; 5", &object.Error{Message: "unknown operator: BOOLEAN + BOOLEAN"}},
+		{"if( 10 > 1) { true + false }", &object.Error{Message: "unknown operator: BOOLEAN + BOOLEAN"}},
+		{"if( true > 1 ) { true + false }", &object.Error{Message: "type mismatch: BOOLEAN > INTEGER"}},
+		{`if( 10 ) { true + false }`, &object.Error{Message: "condition must evaluate to a boolean, got=INTEGER"}},
+		{`if (true) {
+			if (true) {
+				return true + false;
+			}
+			return 1;
+		}`, &object.Error{Message: "unknown operator: BOOLEAN + BOOLEAN"}},
+	}
+
+	for _, tt := range tests {
 		evaluated := testEval(tt.input)
 		testEvaluatedObject(t, tt.input, evaluated, tt.expected)
 	}
@@ -103,6 +154,21 @@ func testEvaluatedObject(t *testing.T, input string, r object.Representation, ex
 		testIntegerObject(t, input, r, int64(exp))
 	case bool:
 		testBooleanObject(t, input, r, exp)
+	case *object.Error:
+		testErrorObject(t, input, r, exp)
+	}
+}
+
+func testErrorObject(t *testing.T, input string, r object.Representation, expected *object.Error) {
+	switch eval := r.(type) {
+	case *object.Error:
+		if eval.Message != expected.Message {
+			t.Fatalf("%s\n\texpected=%s. got=%s",
+				input, expected.Message, eval.Message)
+		}
+	default:
+		t.Fatalf("%s\n\texpected *object.Error. got=%T (%+v)",
+			input, eval, eval)
 	}
 }
 

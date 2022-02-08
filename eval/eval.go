@@ -1,6 +1,8 @@
 package eval
 
 import (
+	"fmt"
+
 	"github.com/EclesioMeloJunior/monkey-lang/ast"
 	"github.com/EclesioMeloJunior/monkey-lang/object"
 	"github.com/EclesioMeloJunior/monkey-lang/token"
@@ -29,6 +31,9 @@ func Eval(node ast.Node) object.Representation {
 
 	case *ast.PrefixExpression:
 		right := Eval(node.Right)
+		if isError(right) {
+			return right
+		}
 
 		switch node.Operator {
 		case token.BANG:
@@ -36,23 +41,36 @@ func Eval(node ast.Node) object.Representation {
 		case token.MINUS:
 			return evalMinusPrefixOperatorExpression(right)
 		default:
-			return Null
+			return errorF("unknow operator: %s%s", node.Operator, right.Type())
 		}
 
 	case *ast.InfixExpression:
 		left := Eval(node.Left)
+		if isError(left) {
+			return left
+		}
+
 		right := Eval(node.Right)
+		if isError(right) {
+			return right
+		}
 
 		return evalInfixExpression(node.Operator, left, right)
 
+	case *ast.ReturnStatement:
+		returned := Eval(node.Value)
+		return &object.Return{
+			Value: returned,
+		}
+
 	case *ast.BlockStatement:
-		return evalStatements(node.Statements)
+		return evalBlockStatements(node.Statements)
 
 	case *ast.IfExpression:
 		return evalIfExpression(node)
 
 	case *ast.Program:
-		return evalStatements(node.Statements)
+		return evalProgram(node.Statements)
 
 	case *ast.ExpressionStatement:
 		return Eval(node.Expression)
@@ -64,6 +82,15 @@ func Eval(node ast.Node) object.Representation {
 
 func evalIfExpression(node *ast.IfExpression) object.Representation {
 	condition := Eval(node.Condition)
+
+	if isError(condition) {
+		// cannot evaluate since the Expression is not valid
+		return condition
+	}
+
+	if condition.Type() != object.BOOLEAN_OBJ {
+		return errorF("condition must evaluate to a boolean, got=%s", condition.Type())
+	}
 
 	switch condition {
 	case Null:
@@ -85,11 +112,35 @@ func evalIfExpression(node *ast.IfExpression) object.Representation {
 	}
 }
 
-func evalStatements(stmts []ast.Statement) object.Representation {
+func evalBlockStatements(stmts []ast.Statement) object.Representation {
 	var rep object.Representation
 
 	for _, stmt := range stmts {
 		rep = Eval(stmt)
+
+		switch rep := rep.(type) {
+		case *object.Return:
+			return rep
+		case *object.Error:
+			return rep
+		}
+	}
+
+	return rep
+}
+
+func evalProgram(stmts []ast.Statement) object.Representation {
+	var rep object.Representation
+
+	for _, stmt := range stmts {
+		rep = Eval(stmt)
+
+		switch rep := rep.(type) {
+		case *object.Return:
+			return rep.Value
+		case *object.Error:
+			return rep
+		}
 	}
 
 	return rep
@@ -115,11 +166,12 @@ func evalMinusPrefixOperatorExpression(right object.Representation) object.Repre
 			Value: -right.Value,
 		}
 	default:
-		return Null
+		return errorF("unknown operator: -%s", right.Type())
 	}
 }
 
 func evalInfixExpression(op string, left, right object.Representation) object.Representation {
+
 	switch l := left.(type) {
 	case *object.Integer:
 
@@ -127,7 +179,7 @@ func evalInfixExpression(op string, left, right object.Representation) object.Re
 		case *object.Integer:
 			return evalIntegerInfixExpression(op, l, r)
 		default:
-			return Null
+			return errorF("type mismatch: %s %s %s", left.Type(), op, right.Type())
 		}
 
 	case *object.Boolean:
@@ -136,11 +188,11 @@ func evalInfixExpression(op string, left, right object.Representation) object.Re
 		case *object.Boolean:
 			return evalBooleanInfixExpression(op, l, r)
 		default:
-			return Null
+			return errorF("type mismatch: %s %s %s", left.Type(), op, right.Type())
 		}
 
 	default:
-		return Null
+		return errorF("unknown operator: %s %s %s", left.Type(), op, right.Type())
 	}
 
 }
@@ -184,7 +236,7 @@ func evalIntegerInfixExpression(op string, left, right *object.Integer) object.R
 		}
 		return False
 	default:
-		return Null
+		return errorF("unknown operator: %s %s %s", left.Type(), op, right.Type())
 	}
 }
 
@@ -201,6 +253,21 @@ func evalBooleanInfixExpression(op string, left, right *object.Boolean) object.R
 		}
 		return False
 	default:
-		return Null
+		return errorF("unknown operator: %s %s %s", left.Type(), op, right.Type())
+	}
+}
+
+func isError(r object.Representation) bool {
+	switch r.(type) {
+	case *object.Error:
+		return true
+	default:
+		return false
+	}
+}
+
+func errorF(format string, o ...interface{}) *object.Error {
+	return &object.Error{
+		Message: fmt.Sprintf(format, o...),
 	}
 }
