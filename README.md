@@ -1,6 +1,6 @@
 # alang
 
-An interepreted (maybe?) turing complete language in Go.
+An interepreted language in Go.
 
 ## Examples
 
